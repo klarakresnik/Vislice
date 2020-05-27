@@ -1,4 +1,5 @@
 import random
+import json
 
 STEVILO_DOVOLJENIH_NAPAK = 9
 PRAVILNA_CRKA = '+'
@@ -96,8 +97,26 @@ def nova_igra():
 
 class Vislice:
 
-    def __init__(self):
+    def __init__(self, datoteka_s_stanjem, datoteka_z_besedami='besede.txt'):
+        self.datoteka_z_besedami = datoteka_z_besedami
         self.igre = {}
+        self.datoteka_s_stanjem = datoteka_s_stanjem
+
+    def zapis_igre_v_datoteko(self):
+        with open(self.datoteka_s_stanjem, 'w', encoding='utf-8') as f:
+            igre = {
+                id_igre : ((igra.geslo, igra.crke), poskus)
+                for id_igre, (igra, poskus) in self.igre.items()
+            }
+            json.dump(igre, f)
+    
+    def nalozi_igre_iz_datoteke(self):
+        with open(self.datoteka_s_stanjem, 'r', encoding='utf-8') as f:
+            igre = json.load(f)
+            self.igre = {
+                int(id_igre) : (Igra(geslo, crke), poskus)
+                for id_igre, ((geslo, crke), poskus) in igre.items()
+            }
 
     def prost_id_igre(self):
         if len(self.igre) == 0:
@@ -106,12 +125,18 @@ class Vislice:
             return max(self.igre.keys()) + 1
 
     def nova_igra(self):
+        self.nalozi_igre_iz_datoteke()
+        with open(self.datoteka_z_besedami, 'r', encoding='utf-8') as f:
+            bazen_besed = [vrstica.strip().upper() for vrstica in f]
         igra = nova_igra()
         id_igre = self.prost_id_igre()
         self.igre[id_igre] = (igra, ZACETEK)
+        self.zapis_igre_v_datoteko()
         return (id_igre, igra)
     
     def ugibaj(self, id_igre, crka):
+        self.nalozi_igre_iz_datoteke()
         igra, _ = self.igre[id_igre] 
         poskus = igra.ugibaj(crka)
         self.igre[id_igre] = (igra, poskus)
+        self.zapis_igre_v_datoteko()
