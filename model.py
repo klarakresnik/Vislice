@@ -8,6 +8,7 @@ VEC_KOT_CRKA = '§'
 POSEBEN_ZNAK = '@'
 ZMAGA = 'w'
 PORAZ = 'l'
+ZACETEK = 'ł'
 
 class Igra:
 
@@ -92,3 +93,25 @@ with open('besede.txt', 'r', encoding='utf-8') as dat:
 
 def nova_igra():
     return Igra(random.choice(bazen_besed))
+
+class Vislice:
+
+    def __init__(self):
+        self.igre = {}
+
+    def prost_id_igre(self):
+        if len(self.igre) == 0:
+            return 0
+        else:
+            return max(self.igre.keys()) + 1
+
+    def nova_igra(self):
+        igra = nova_igra()
+        id_igre = self.prost_id_igre()
+        self.igre[id_igre] = (igra, ZACETEK)
+        return (id_igre, igra)
+    
+    def ugibaj(self, id_igre, crka):
+        igra, _ = self.igre[id_igre] 
+        poskus = igra.ugibaj(crka)
+        self.igre[id_igre] = (igra, poskus)
